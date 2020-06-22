@@ -1,39 +1,36 @@
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ComplexCalculation {
 
     public static void main(String[] args) throws InterruptedException {
-        new ComplexCalculation()
+
+        BigInteger result = new ComplexCalculation()
                 .calculateResult(new BigInteger("2"), new BigInteger("2"),
-                                 new BigInteger("2"), new BigInteger("2"));
-        Thread.sleep(10000);
+                        new BigInteger("2"), new BigInteger("2"));
+
+        Thread.sleep(2000);
+
+        System.out.println(result);
+
     }
     public BigInteger calculateResult(BigInteger base1, BigInteger power1,
                                       BigInteger base2, BigInteger power2) throws InterruptedException {
 
-        BigInteger result = BigInteger.ZERO;
-        /*
-            Calculate result = ( base1 ^ power1 ) + (base2 ^ power2).
-            Where each calculation in (..) is calculated on a different thread
-        */
-        List<PowerCalculatingThread> threads = new ArrayList<>();
-        threads.add(new PowerCalculatingThread(base1, power1));
-        threads.add(new PowerCalculatingThread(base2, power2));
+        BigInteger result;
 
-        for (PowerCalculatingThread powerCalculatingThread: threads) {
-            powerCalculatingThread.start();
-        }
+        PowerCalculatingThread thread1 = new PowerCalculatingThread(base1, power1);
+        PowerCalculatingThread thread2 = new PowerCalculatingThread(base2, power2);
 
-        for (PowerCalculatingThread powerCalculatingThread: threads) {
-            powerCalculatingThread.join();
-        }
+        // start each thread
+        thread1.start();
+        thread2.start();
 
-        for (PowerCalculatingThread powerCalculatingThread: threads) {
-            result = result.add(powerCalculatingThread.getResult());
-        }
-        System.out.println(result);
+        // Main thread need to wait both threads to complete before proceed.
+        thread1.join();
+        thread2.join();
+
+        result = thread1.getResult().add(thread2.getResult());
+
         return result;
     }
 
@@ -49,9 +46,6 @@ public class ComplexCalculation {
 
         @Override
         public void run() {
-           /*
-           Implement the calculation of result = base ^ power
-           */
            for (BigInteger i = BigInteger.ZERO; i.compareTo(power) != 0; i = i.add(BigInteger.ONE)) {
                result = result.multiply(base);
            }
